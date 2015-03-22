@@ -26,8 +26,8 @@ public class ContactManagerImplTest {
 	@Test
 	public void ContactManagerMeetingListTest()
 	{
-		ContactManager testCM = new ContactManagerImpl();
-		assertNotNull(testCM.meetingList);
+		ContactManagerImpl testCM = new ContactManagerImpl();
+		assertNotNull(testCM.getMeetingList());
 	}
 	
 	/**
@@ -36,7 +36,7 @@ public class ContactManagerImplTest {
 	@Test
 	public void ContactManagerContactsSetTest()
 	{
-		ContactManager testCM = new ContactManagerImpl();
-		assertNotNull(testCM.contacts);
+		ContactManagerImpl testCM = new ContactManagerImpl();
+		assertNotNull(testCM.getContacts());
 	}
 }
