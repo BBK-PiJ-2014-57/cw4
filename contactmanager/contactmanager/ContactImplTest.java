@@ -91,6 +91,6 @@ public class ContactImplTest {
 		firstContact = new ContactImpl(name);
 		int firstHash = firstContact.hashCode();
 		int secondHash = firstContact.hashCode();
-		assertTrue(firstContact.equals(firstContact));
+		assertTrue(firstHash == secondHash);
 	}
 }
