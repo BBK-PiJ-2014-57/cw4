@@ -75,18 +75,22 @@ public class ContactImplTest {
 	}
 	
 	@Test
-	public void equalsTest1(){
+	public void hashCodeTest1(){
 		String name = "Harry";
 		String note = "the first one";
 		firstContact = new ContactImpl(name, note);
 		secondContact = new ContactImpl(name, note);
-		assertFalse(firstContact.equals(secondContact));
+		int firstHash = firstContact.hashCode();
+		int secondHash = secondContact.hashCode();
+		assertFalse(firstHash == secondHash);
 	}
 	
 	@Test
-	public void equalsTest2(){
+	public void hashCodeTest2(){
 		String name = "John";
 		firstContact = new ContactImpl(name);
+		int firstHash = firstContact.hashCode();
+		int secondHash = firstContact.hashCode();
 		assertTrue(firstContact.equals(firstContact));
 	}
 }
