@@ -29,14 +29,14 @@ public class ContactImplTest {
 	
 	@Test
 	public void getIdTest(){
-		int count = ContactImpl.totalContacts;
+		int count = ContactImpl.getTotal();
 		firstContact = new ContactImpl(testName, testNote);
 		assertEquals(firstContact.getId(), count);
 	}
 	
 	@Test
 	public void getIdMultipleContactsTest(){
-		int count = ContactImpl.totalContacts;
+		int count = ContactImpl.getTotal();
 		firstContact = new ContactImpl(testName, testNote);
 		secondContact = new ContactImpl(testName, testNote);
 		assertEquals(secondContact.getId(), count + 1);
