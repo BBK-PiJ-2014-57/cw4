@@ -7,6 +7,9 @@ package contactmanager;
  */
 public class ContactImpl implements Contact {
 
+	/**
+	 * Static counter for number of totalContacts. Also keeps IDs unique.
+	 */
 	private static int totalContacts;
 	private String Name;
 	private String Notes;
