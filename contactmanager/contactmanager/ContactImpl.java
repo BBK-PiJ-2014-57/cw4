@@ -70,5 +70,11 @@ public class ContactImpl implements Contact {
 		else
 			this.Notes += note;
 	}
+	
+	@Override
+	public int hashCode()
+	{
+		return this.getId();
+	}
 
 }
