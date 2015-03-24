@@ -73,4 +73,20 @@ public class ContactImplTest {
 		noNoteCtorContact.addNotes(null);
 		assertEquals(noNoteCtorContact.getNotes(), "");
 	}
+	
+	@Test
+	public void equalsTest1(){
+		String name = "Harry";
+		String note = "the first one";
+		firstContact = new ContactImpl(name, note);
+		secondContact = new ContactImpl(name, note);
+		assertFalse(firstContact.equals(secondContact));
+	}
+	
+	@Test
+	public void equalsTest2(){
+		String name = "John";
+		firstContact = new ContactImpl(name);
+		assertTrue(firstContact.equals(firstContact));
+	}
 }
