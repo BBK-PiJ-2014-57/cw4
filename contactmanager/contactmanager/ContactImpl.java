@@ -74,7 +74,19 @@ public class ContactImpl implements Contact {
 	@Override
 	public int hashCode()
 	{
-		return this.getId();
+		return this.id;
 	}
+	
+	@Override
+	public boolean equals(Object gg)
+	{
+		if(gg == this) return true;
+		if(!(gg instanceof Contact)) return false;
+		ContactImpl contactgg = (ContactImpl)gg;
+		if(contactgg.getName().equals(this.getName())) return false;
+		if(contactgg.getId() != this.getId()) return false;
+		return true;
+	}
+	
 
 }
