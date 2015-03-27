@@ -25,7 +25,7 @@ public class MeetingImpl implements Meeting {
 		}
 	}
 	
-	public int getTotal()
+	public static int getTotal()
 	{
 		return totalMeetings;
 	}

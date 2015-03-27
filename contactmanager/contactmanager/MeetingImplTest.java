@@ -11,8 +11,8 @@ import java.util.GregorianCalendar;
 
 public class MeetingImplTest {
 	
-	private Calendar testDate = new GregorianCalendar(2015, Calendar.MARCH, 24, 20, 0, 0);
-	private Calendar testDate2 = new GregorianCalendar(2015, Calendar.MARCH, 25, 20, 0, 0);
+	private Calendar testDate = new GregorianCalendar(2015, Calendar.MARCH, 25, 20, 0, 0);
+	private Calendar testDate2 = new GregorianCalendar();
 	private Set<Contact> testContacts;
 	private Contact contact1;
 	private Contact contact2;
@@ -21,6 +21,8 @@ public class MeetingImplTest {
 	@Test
 	public void getIDTest()
 	{
+		testContacts = new HashSet<Contact>();
+		testContacts.add(new ContactImpl("Tester"));
 		int totalMeetings = MeetingImpl.getTotal();
 		test1 = new MeetingImpl(testDate, testContacts);
 		assertEquals(test1.getId(), totalMeetings);
@@ -29,8 +31,10 @@ public class MeetingImplTest {
 	@Test
 	public void getDateTest()
 	{
+		testContacts = new HashSet<Contact>();
+		testContacts.add(contact1);
 		test1 = new MeetingImpl(testDate, testContacts);
-		assertEquals(test1.getDate(), test1);
+		assertEquals(test1.getDate(), testDate);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
@@ -45,6 +49,7 @@ public class MeetingImplTest {
 	{
 		contact1 = new ContactImpl("Bob");
 		contact2 = new ContactImpl("Harry");
+		testContacts = new HashSet<Contact>();
 		testContacts.add(contact1);
 		testContacts.add(contact2);
 		test1 = new MeetingImpl(testDate, testContacts);
