@@ -56,8 +56,48 @@ public class MeetingImplTest {
 		assertEquals(test1.getContacts(), testContacts);
 	}
 	
+	@Test
+	public void dateCtorTest()
+	{
+		assertFalse(testDate.equals(testDate2));
+	}
 	
+	@Test
+	public void copyCtorIdTest()
+	{
+		createContacts();
+		Meeting first = new MeetingImpl(testDate, testContacts);
+		int firstId = first.getId();
+		Meeting second = new MeetingImpl(first);
+		assertEquals(firstId, second.getId());
+	}
 	
+	@Test
+	public void copyCtorDateTest()
+	{
+		createContacts();
+		Meeting first = new MeetingImpl(testDate, testContacts);
+		Calendar date = first.getDate();
+		Meeting second = new MeetingImpl(first);
+		assertEquals(second.getDate(), date);
+	}
+	
+	@Test
+	public void copyCtorParticipantsTest()
+	{
+		createContacts();
+		Meeting first = new MeetingImpl(testDate, testContacts);
+		Set<Contact> contacts = first.getContacts();
+		Meeting second = new MeetingImpl(first);
+		assertEquals(second.getContacts(), contacts);
+	}
+	
+	private void createContacts()
+	{
+		contact1 = new ContactImpl("Harry");
+		testContacts = new HashSet<Contact>();
+		testContacts.add(contact1);
+	}
 	
 	
 }
