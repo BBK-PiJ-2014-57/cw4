@@ -25,6 +25,13 @@ public class MeetingImpl implements Meeting {
 		}
 	}
 	
+	public MeetingImpl(Meeting meeting)
+	{
+		this.id = meeting.getId();
+		this.contacts = meeting.getContacts();
+		this.date = meeting.getDate();
+	}
+	
 	public static int getTotal()
 	{
 		return totalMeetings;
