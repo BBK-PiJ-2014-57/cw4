@@ -13,7 +13,7 @@ import org.junit.Test;
 public class PastMeetingImplTest {
 
 	private FutureMeeting testFuture;
-	private Meeting testMeeting;
+	private MeetingImpl testMeeting;
 	private PastMeeting testPastMeeting;
 	private PastMeeting testPastMeeting2;
 	private Calendar testDate;
@@ -28,10 +28,9 @@ public class PastMeetingImplTest {
 		testContact = new ContactImpl("Harry");
 		testContacts = new HashSet<Contact>();
 		testContacts.add(testContact);
-		testFuture = (FutureMeeting)(new MeetingImpl(testDate, testContacts));
-		testNotes = "Testing";
-		testPastMeeting = new PastMeetingImpl(testFuture, testNotes);
 		testMeeting = new MeetingImpl(testDate, testContacts);
+		testFuture = new FutureMeetingImpl(testDate, testContacts);
+		testPastMeeting = new PastMeetingImpl(testFuture, testNotes);
 		testPastMeeting2 = new PastMeetingImpl(testMeeting, testNotes);
 	}
 	
