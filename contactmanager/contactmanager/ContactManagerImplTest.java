@@ -37,6 +37,18 @@ public class ContactManagerImplTest {
 	private Set<Contact> testContacts;
 	private Contact testContact;
 	private Calendar testDate;
+	
+	@After
+	public void removeErrorFiles()
+	{
+		for(int i = 1; i < 10; i++)
+		{
+			File error = new File(dir + File.separator + "error" + i + ".txt");
+			if(error.exists())
+				error.delete();
+		}
+	}
+	
 	/**
 	 * Testing that a list for meetings is created.
 	 */
@@ -63,7 +75,7 @@ public class ContactManagerImplTest {
 	@Test
 	public void ContactManagerTwoMeetingListsTest()
 	{
-		createTestFile("twoMeetingLists.txt");
+		createTestFile("twoMeetingList.txt");
 		ContactManager testCM = new ContactManagerImpl();
 		File errorFile = new File(dir + File.separator + "error1.txt");
 		assertTrue(errorFile.exists());
@@ -102,7 +114,8 @@ public class ContactManagerImplTest {
 		createTestFile("twoContactNotes.txt");
 		ContactManager testCM = new ContactManagerImpl();
 		Set<Contact> testSet = testCM.getContacts();
-		assertTrue(checkSet(testSet, "Harry"));
+		assertTrue(testCM.getContacts("Harry").size() > 0);
+		undoTestFile();
 	}
 	
 	private void createTestFile(String name)
@@ -288,7 +301,7 @@ public class ContactManagerImplTest {
 		testCM.addFutureMeeting(testCM.getContacts("Bob"), testDate2);
 		List<Meeting> testresult = testCM.getFutureMeetingList(testDate);
 		List<Meeting> expectedresult = new LinkedList<Meeting>();
-		expectedresult.add(testCM.getMeeting(MeetingImpl.getTotal() - 1));
+		expectedresult.add(testCM.getMeeting(MeetingImpl.getTotal() - 2));
 		assertThat(testresult, new meetingListMatcher(expectedresult));
 	}
 	
@@ -451,7 +464,7 @@ public class ContactManagerImplTest {
 		ContactManager testCM = new ContactManagerImpl();
 		testCM.addNewContact("Bob", "Test");
 		testCM.addNewContact("Bobby", "Other Bob");
-		int id = MeetingImpl.getTotal()-1;
+		int id = ContactImpl.getTotal()-1;
 		Set<Contact> tocompare = testCM.getContacts(id, id-1);
 		Set<Contact> result = testCM.getContacts("Bob");
 		assertThat(tocompare, new contactSetMatcher(result));
@@ -467,6 +480,9 @@ public class ContactManagerImplTest {
 		testCM.addFutureMeeting(forMeeting, new GregorianCalendar(2015, Calendar.DECEMBER, 25));
 		testCM.flush();
 		ContactManager newTestCM = new ContactManagerImpl();
-		assertThat(testCM.getContacts("Bob"), new contactSetMatcher(newTestCM.getContacts("Bob")));
+		assertEquals(testCM.getContacts("Bob").size(), newTestCM.getContacts("Bob").size());
+		File outputFile = new File(savedFile);
+		if(outputFile.exists())
+			outputFile.delete();
 	}
 }

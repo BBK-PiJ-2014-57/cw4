@@ -1,1 +1,1 @@
-<ContactManager><MeetingList></MeetingList><MeetingList></MeetingList><Contacts></Contacts></ContactManger>
+<ContactManager><MeetingList></MeetingList><MeetingList></MeetingList><Contacts></Contacts></ContactManager>

@@ -25,6 +25,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 /**
  * Implements the Interface ContactManager. Basic principle is that data will be loaded and read from the XML by this program
  * only. Loads on empty List/Set of Meetings/Contacts if there is no XML found. Errors are output in numbered text files in
@@ -110,20 +111,21 @@ public class ContactManagerImpl implements ContactManager {
 		{
 			errorNumber++;
 			outputError("Error with Document Builder Factory Parser " + err.toString());
-			err.printStackTrace();
 		} catch (ParserConfigurationException err) {
 			errorNumber++;
 			outputError("Error with Document Builder configuration: " + err.toString());
-			err.printStackTrace();
+		}catch (SAXParseException err)
+		{
+			errorNumber++;
+			outputError("Error with SAX project parsing XML from saved file: " + err.toString());
 		} catch (SAXException err) {
 			errorNumber++;
 			outputError("Error with SAX project loading XML from saved file: " + err.toString());
-			err.printStackTrace();
 		} catch (IOException err) {
 			errorNumber++;
 			outputError("Error with Input of data from saved XML: " + err.toString());
-			err.printStackTrace();
 		}
+		
 	}
 	
 	private void outputError(String errString)
@@ -361,14 +363,24 @@ public class ContactManagerImpl implements ContactManager {
 		for(int i = 0; i < meetingList.size(); i++)
 		{
 			Meeting tocheck = meetingList.get(i);
-			if(tocheck.getDate().before((Calendar)dateAfter) && tocheck.getDate().after((Calendar)dateBefore))
+			if(date.get(Calendar.YEAR) == (tocheck.getDate().get(Calendar.YEAR))
+					&& date.get(Calendar.MONTH) == (tocheck.getDate().get(Calendar.MONTH))
+							&& date.get(Calendar.DAY_OF_MONTH) == (tocheck.getDate().get(Calendar.DAY_OF_MONTH)))
 			{
 				int j = 0;
 				int size = toReturn.size();
-				while(j < size && tocheck.getDate().before(toReturn.get(j).getDate()))
+				boolean added = false;
+				while(j < size && !added)
 				{
-					toReturn.add(j, tocheck);
+					if(tocheck.getDate().before(toReturn.get(j).getDate()))
+					{
+						toReturn.add(j, tocheck);
+						added = true;
+					}
+					j++;
 				}
+				if(!added)
+					toReturn.add(tocheck);
 			}
 		}
 		return toReturn;
