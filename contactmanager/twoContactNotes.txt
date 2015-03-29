@@ -1,0 +1,1 @@
+<ContactManager><Contacts><Contact Name="Harry"><Note></Note><Note></Note></Contact></Contacts><Contacts></Contacts><MeetingList></MeetingList></ContactManager>
