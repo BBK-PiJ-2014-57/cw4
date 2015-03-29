@@ -16,6 +16,7 @@ public class ContactImplTest {
 	private Contact noNoteCtorContact;
 	private Contact firstContact;
 	private Contact secondContact;
+	
 	@Before
 	public void SetUpContact()
 	{

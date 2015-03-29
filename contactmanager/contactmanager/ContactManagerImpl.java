@@ -74,6 +74,9 @@ public class ContactManagerImpl implements ContactManager {
 			loadSavedData();
 	}
 	
+	/**
+	 * Function loads Data from XML format.
+	 */
 	private void loadSavedData()
 	{
 		try
@@ -128,6 +131,10 @@ public class ContactManagerImpl implements ContactManager {
 		
 	}
 	
+	/**
+	 * File outputs error data for Error reporting.
+	 * @param errString Error message
+	 */
 	private void outputError(String errString)
 	{
 		File file = new File(dir + File.separator + errorFileName + errorNumber + ".txt");
@@ -144,6 +151,10 @@ public class ContactManagerImpl implements ContactManager {
 		}
 	}
 	
+	/**
+	 * Takes in Contact portion of saved XML and then loads into Data structure.
+	 * @param node Contacts portion of XML.
+	 */
 	private void loadContactsFromXML(NodeList node)
 	{
 		int listLength = node.getLength();
@@ -180,6 +191,10 @@ public class ContactManagerImpl implements ContactManager {
 		}
 	}
 	
+	/**
+	 * Loads meeting part of XML into Meeting data structure
+	 * @param node list of meetings part of XML
+	 */
 	private void loadMeetingsFromXML(NodeList node)
 	{
 		int listLength = node.getLength();
