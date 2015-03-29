@@ -25,7 +25,7 @@ public class pastMeetingListMatcher extends TypeSafeMatcher<List<PastMeeting>>{
 				}
 				if(i != actual.size() - 1)
 				{
-					if(!actual.get(i).getDate().after(actual.get(i+1).getDate()))
+					if(actual.get(i).getDate().after(actual.get(i+1).getDate()))
 						return false;
 				}
 				if(duplicateCheck(actual, actual.get(i).getId()))

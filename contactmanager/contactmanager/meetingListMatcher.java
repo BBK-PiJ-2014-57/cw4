@@ -29,13 +29,15 @@ public class meetingListMatcher extends TypeSafeMatcher<List<Meeting>>{
 					if(!actual.get(i).getDate().after(actual.get(i+1).getDate()))
 						return false;
 				}
+				if(duplicateCheck(actual, actual.get(i).getId()))
+					return false;
 			}
 				return true;
 		}
 		@Override
 		public void describeTo(Description descr)
 		{
-			descr.appendText("Not the same list");
+			descr.appendText("Not the same list or incorrect Format");
 		}
 		
 		private boolean checkExpected(int id)
@@ -48,5 +50,17 @@ public class meetingListMatcher extends TypeSafeMatcher<List<Meeting>>{
 			return false;
 		}
 		
+		private boolean duplicateCheck(List<Meeting> checkList, int id)
+		{
+			int count = 0;
+			for(int i = 0; i < checkList.size(); i++)
+			{
+				if((checkList.get(i).getId() == id))
+					count++;
+				if(count > 1)
+					return true;
+			}
+			return false;
+		}
 }
 

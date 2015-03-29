@@ -114,7 +114,15 @@ public class ContactManagerImplTest {
 	
 	private void undoTestFile()
 	{
-		testFile.renameTo(new File(testFileName));
+		for(int i = 1; i < 10; i++)
+		{
+			File error = new File(dir + File.separator + "error" + i + ".txt");
+			if(error.exists())
+				error.delete();
+		}
+		File outputFile = new File(savedFile);
+		if(outputFile.exists())
+			outputFile.renameTo(new File(testFileName));
 		testFileName = dir + File.separator;
 	}
 	
@@ -139,6 +147,7 @@ public class ContactManagerImplTest {
 	public void addFutureMeetingidTest()
 	{
 		testDate = new GregorianCalendar();
+		testDate.roll(Calendar.MONTH, 1);
 		ContactManager testCM = new ContactManagerImpl();
 		testCM.addNewContact("Bob", "Hi");
 		Set<Contact> fortest = testCM.getContacts("Bob");
@@ -174,9 +183,10 @@ public class ContactManagerImplTest {
 		Set<Contact> fortest = testCM.getContacts("Bob");
 		testDate = new GregorianCalendar(1999, Calendar.FEBRUARY, 1);
 		testCM.addNewPastMeeting(fortest, testDate, "Test");
-		PastMeeting testresult = testCM.getPastMeeting(0);
+		int mid = MeetingImpl.getTotal() - 1;
+		PastMeeting testresult = testCM.getPastMeeting(mid);
 		int id = MeetingImpl.getTotal();
-		assertEquals(testresult.getId(), id);
+		assertEquals(testresult.getId(), id-1);
 	}
 	
 	@Test
@@ -278,7 +288,6 @@ public class ContactManagerImplTest {
 		testCM.addFutureMeeting(testCM.getContacts("Bob"), testDate2);
 		List<Meeting> testresult = testCM.getFutureMeetingList(testDate);
 		List<Meeting> expectedresult = new LinkedList<Meeting>();
-		expectedresult.add(testCM.getMeeting(MeetingImpl.getTotal() - 2));
 		expectedresult.add(testCM.getMeeting(MeetingImpl.getTotal() - 1));
 		assertThat(testresult, new meetingListMatcher(expectedresult));
 	}
@@ -294,8 +303,8 @@ public class ContactManagerImplTest {
 		testCM.addNewPastMeeting(testCM.getContacts("Bob"), testDate2, "Test2");
 		List<PastMeeting> testresult = testCM.getPastMeetingList((Contact)testCM.getContacts("Bob").toArray()[0]);
 		List<PastMeeting> expectedresult = new LinkedList<PastMeeting>();
-		expectedresult.add(testCM.getPastMeeting(MeetingImpl.getTotal() - 2));
 		expectedresult.add(testCM.getPastMeeting(MeetingImpl.getTotal() - 1));
+		expectedresult.add(testCM.getPastMeeting(MeetingImpl.getTotal() - 2));
 		assertThat(testresult, new pastMeetingListMatcher(expectedresult));
 	}
 	
@@ -366,8 +375,7 @@ public class ContactManagerImplTest {
 		Set<Contact> fortest = testCM.getContacts("Bob");
 		testCM.addFutureMeeting(fortest, testDate);
 		int id = MeetingImpl.getTotal() - 1;
-		testDate = new GregorianCalendar(2014, Calendar.JANUARY, 1);
-		testCM.addMeetingNotes(0,  "Hi");
+		testCM.addMeetingNotes(id,  null);
 	}
 	
 	@Test
@@ -379,10 +387,11 @@ public class ContactManagerImplTest {
 		testCM.addNewContact("Bob",  "Notes");
 		testCM.addFutureMeeting(testCM.getContacts("Bob"),  testDate);
 		testDate = new GregorianCalendar(2015, Calendar.NOVEMBER, 13);
-		testCM.updateCurrentDate(testDate);
-		int id = MeetingImpl.getTotal();
+		((ContactManagerImpl) testCM).updateCurrentDate(testDate);
+		int id = MeetingImpl.getTotal() - 1;
 		testCM.addMeetingNotes(id, notes);
 		assertEquals(testCM.getPastMeeting(id).getNotes(), notes);
+		((ContactManagerImpl) testCM).updateCurrentDate(new GregorianCalendar());
 	}
 	
 	@Test(expected = NullPointerException.class)
@@ -413,7 +422,7 @@ public class ContactManagerImplTest {
 		ContactManager testCM = new ContactManagerImpl();
 		testCM.addNewContact("Harry", "Hi");
 		testCM.addNewContact("Joe", "Hello");
-		int id = MeetingImpl.getTotal() - 1;
+		int id = ContactImpl.getTotal() - 1;
 		Set<Contact> result = testCM.getContacts(id-1, id);
 		Set<Contact> tocheck = testCM.getContacts("Harry");
 		tocheck.addAll(testCM.getContacts("Joe"));
@@ -442,7 +451,7 @@ public class ContactManagerImplTest {
 		ContactManager testCM = new ContactManagerImpl();
 		testCM.addNewContact("Bob", "Test");
 		testCM.addNewContact("Bobby", "Other Bob");
-		int id = MeetingImpl.getTotal();
+		int id = MeetingImpl.getTotal()-1;
 		Set<Contact> tocompare = testCM.getContacts(id, id-1);
 		Set<Contact> result = testCM.getContacts("Bob");
 		assertThat(tocompare, new contactSetMatcher(result));

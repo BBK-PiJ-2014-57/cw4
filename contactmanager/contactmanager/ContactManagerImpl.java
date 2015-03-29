@@ -12,6 +12,12 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -46,7 +52,7 @@ public class ContactManagerImpl implements ContactManager {
 	private final String NotesElementTag = "Note";
 	private final String contactListNodeTag = "Contacts";
 	private final String nameAttributeName = "Name";
-	private final String contactListElementTaf = "Contact";
+	private final String contactListElementTag = "Contact";
 	private final String idAttributeName = "id";
 	private final String dateElementTag = "Date";
 	private final String yearAttributeName = "Year";
@@ -56,11 +62,12 @@ public class ContactManagerImpl implements ContactManager {
 	private final String minuteAttributeName = "Minute";
 	private final String participantListElementTag = "Participants";
 	private final String typeAttributeName = "Type";
+	private final String headerElementTagName = "ContactManager";
 	
 	public ContactManagerImpl()
 	{
 		meetingList = new LinkedList<Meeting>();
-		contacts = new HashSet<Contact>();
+		contactSet = new HashSet<Contact>();
 		savedData = new File(dir + fileName);
 		if(savedData.exists())
 			loadSavedData();
@@ -84,7 +91,8 @@ public class ContactManagerImpl implements ContactManager {
 			}
 			if(contactNode.getLength() > 0)
 			{
-				loadContactsFromXML(contactNode);
+				NodeList contactList = contactNode.item(0).getChildNodes();
+				loadContactsFromXML(contactList);
 			}
 			//Takes the meeting part of the XML to read saved data.
 			NodeList meetingNode = savedDoc.getElementsByTagName(meetingListNodeTag);
@@ -149,13 +157,24 @@ public class ContactManagerImpl implements ContactManager {
 					errorNumber++;
 					outputError("Incorrect XML Formatting for Contact Notes, Contact: " + Name + " Only copying first Note");
 				}
-				String contactNote;
+				String contactNote = "";
 				if(contactNotes.getLength() > 0)
 				{
 					contactNote = contactNotes.item(0).getNodeValue();
 				}
-				contacts.add(new ContactImpl(Name, contactNote));
+				contactSet.add(new ContactImpl(Name, contactNote));
 			}
+			catch(IllegalArgumentException err)
+			{
+				errorNumber++;
+				outputError("Error loading contact in XML list number: "+ i + ". Error: " + err.toString());
+			}
+			catch(ClassCastException err)
+			{
+				errorNumber++;
+				outputError("Error parsing XML to Contact. Error: " + err.toString());
+			}
+			
 		}
 	}
 	
@@ -168,13 +187,19 @@ public class ContactManagerImpl implements ContactManager {
 			{
 				Element meeting = (Element)node.item(i);
 				NodeList meetingNoteNode = meeting.getElementsByTagName(NotesElementTag);
-				String meetingNotes = meetingNoteNode.item(0).getNodeValue();
-				String meetingId = meeting.getAttribute(idAttributeName);
-				Element date = (Element)meeting.getElementsByTagName(dateElementTag).item(0);
-				if(meeting.getElementsByTagName(dateElementTag).getLength() > 1)
+				String meetingNotes = "";
+				if(meetingNoteNode.getLength() > 0)
 				{
-					errorNumber++;
-					outputError("Incorrect XML Formatting for Meeting Date for meeting: " + meetingId);
+					meetingNotes = meetingNoteNode.item(0).getNodeValue();
+				}
+				Element date;
+				if(meeting.getElementsByTagName(dateElementTag).getLength() > 0)
+				{
+					date = (Element)meeting.getElementsByTagName(dateElementTag).item(0);
+				}
+				else
+				{
+					throw new IllegalArgumentException();
 				}
 				String year = date.getAttribute(yearAttributeName);
 				String month = date.getAttribute(monthAttributeName);
@@ -206,19 +231,32 @@ public class ContactManagerImpl implements ContactManager {
 				//Just to check if any correct contact were provided. No point adding a meeting no one is going to.
 				if(meetingParticipants.size() > 0)
 				{
-					Object type = Integer.parseInt(meeting.getAttribute(typeAttributeName));
-					if(type == MeetingType.Future)
-						meetingList.add(new FutureMeetingImpl(tempDate, meetingParticipants));
-					else if(type == MeetingType.Past)
-						meetingList.add(new PastMeetingImpl(tempDate, meetingParticipants, meetingNotes));
-					else
+					try{
+						int type = Integer.parseInt(meeting.getAttribute(typeAttributeName));
+						if(type == MeetingType.Future)
+							meetingList.add(new FutureMeetingImpl(tempDate, meetingParticipants));
+						else if(type == MeetingType.Past)
+							meetingList.add(new PastMeetingImpl(tempDate, meetingParticipants, meetingNotes));
+						else
+							meetingList.add(new MeetingImpl(tempDate, meetingParticipants));
+					}
+					catch(NumberFormatException err)
+					{
+						errorNumber++;
+						outputError("Error converting Meeting Type for meeting " + i + ". Error: " + err.toString());
 						meetingList.add(new MeetingImpl(tempDate, meetingParticipants));
+					}
 				}
 			}
 			catch(DOMException err)
 			{
 				errorNumber++;
 				outputError("Error loading Meetings from XML into classes: " + err.toString());
+			}
+			catch(IllegalArgumentException err)
+			{
+				errorNumber++;
+				outputError("Error converting XML to Meeting: " + err.toString());
 			}
 		}
 	}
@@ -238,7 +276,7 @@ public class ContactManagerImpl implements ContactManager {
 	 */
 	public Set<Contact> getContacts()
 	{
-		return this.contacts;
+		return this.contactSet;
 	}
 	
 	@Override
@@ -323,7 +361,7 @@ public class ContactManagerImpl implements ContactManager {
 		for(int i = 0; i < meetingList.size(); i++)
 		{
 			Meeting tocheck = meetingList.get(i);
-			if(tocheck.getDate().before(dateAfter) && tocheck.getDate().after(dateBefore))
+			if(tocheck.getDate().before((Calendar)dateAfter) && tocheck.getDate().after((Calendar)dateBefore))
 			{
 				int j = 0;
 				int size = toReturn.size();
@@ -341,7 +379,8 @@ public class ContactManagerImpl implements ContactManager {
 		List<PastMeeting> toReturn = new LinkedList<PastMeeting>();
 		if(!contactSet.contains(contact))
 			throw new IllegalArgumentException();
-		for(int i = 0; i < meetingList.size(); i++)
+		int topend = meetingList.size();
+		for(int i = 0; i < topend; i++)
 		{
 			Meeting tocheck = meetingList.get(i);
 			if(tocheck.getContacts().contains(contact))
@@ -350,10 +389,18 @@ public class ContactManagerImpl implements ContactManager {
 				{
 					int j = 0;
 					int size = toReturn.size();
-					while(j < size && tocheck.getDate().before(toReturn.get(j).getDate()))
+					boolean added = false;
+					while(j < size && !added)
 					{
-						toReturn.add(j, (PastMeeting)tocheck);
+						if(tocheck.getDate().before(toReturn.get(j).getDate()))
+						{
+							toReturn.add(j, (PastMeeting)tocheck);
+							added = true;
+						}
+						j++;
 					}
+					if(!added)
+						toReturn.add((PastMeeting)tocheck);
 				}
 			}
 		}
@@ -372,6 +419,8 @@ public class ContactManagerImpl implements ContactManager {
 			if(!contactSet.contains(c))
 				throw new IllegalArgumentException();
 		}
+		if(date.after(currDate))
+			throw new IllegalArgumentException();
 		meetingList.add(new PastMeetingImpl(date, contacts, text));
 	}
 
@@ -428,7 +477,7 @@ public class ContactManagerImpl implements ContactManager {
 
 	@Override
 	public Set<Contact> getContacts(String name) {
-		if(name == null)
+		if(name == null || name.equals(""))
 			throw new NullPointerException();
 		Set<Contact> toReturn = new HashSet<Contact>();
 		for(Contact c : contactSet)
@@ -438,11 +487,104 @@ public class ContactManagerImpl implements ContactManager {
 		}
 		return toReturn;
 	}
+	
+	public void updateCurrentDate(Calendar date)
+	{
+		this.currDate = date;
+	}
 
 	@Override
 	public void flush() {
-		// TODO Auto-generated method stub
-
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		try {
+			DocumentBuilder docBuilder = dbFactory.newDocumentBuilder();
+			Document savedData = docBuilder.newDocument();
+			Element mainNode = savedData.createElement(headerElementTagName);
+			savedData.appendChild(mainNode);
+			Element contactsNode = savedData.createElement(contactListNodeTag);
+			mainNode.appendChild(contactsNode);
+			for(Contact c : contactSet)
+			{
+				Element contact = savedData.createElement(contactListElementTag);
+				contact.setAttribute(nameAttributeName, c.getName());
+				Element contactNotes = savedData.createElement(NotesElementTag);
+				contactNotes.setNodeValue(c.getNotes());
+				contact.appendChild(contactNotes);
+				contactsNode.appendChild(contact);
+			}
+			Element meetingsNode = savedData.createElement(meetingListNodeTag);
+			mainNode.appendChild(meetingsNode);
+			for(Meeting m : meetingList)
+			{
+				Element meeting = savedData.createElement(meetingListElementTag);
+				Calendar tempDate = (Calendar)currDate.clone();
+				tempDate.roll(Calendar.MONTH, 1);
+				FutureMeeting future = new FutureMeetingImpl(tempDate, contactSet);
+				tempDate.roll(Calendar.MONTH, -2);
+				PastMeeting past = new PastMeetingImpl(tempDate, contactSet, "Temp");
+				int Meetingtype;
+				if(m.getClass().equals(future.getClass()))
+					Meetingtype = MeetingType.Future;
+				else if (m.getClass().equals(past.getClass()))
+				{
+					Meetingtype = MeetingType.Past;
+					Element meetingNote = savedData.createElement(NotesElementTag);
+					PastMeeting tempm = (PastMeeting)m;
+					meetingNote.setNodeValue(tempm.getNotes());
+					meeting.appendChild(meetingNote);
+				}
+				else
+					Meetingtype = MeetingType.NormalMeeting;
+				meeting.setAttribute(typeAttributeName, Integer.toString(Meetingtype));
+				Element date = savedData.createElement(dateElementTag);
+				date.setAttribute(yearAttributeName, Integer.toString(m.getDate().get(Calendar.YEAR)));
+				date.setAttribute(monthAttributeName, Integer.toString(m.getDate().get(Calendar.MONTH)));
+				date.setAttribute(dateAttributeName, Integer.toString(m.getDate().get(Calendar.DATE)));
+				date.setAttribute(hourAttributeName, Integer.toString(m.getDate().get(Calendar.HOUR)));
+				date.setAttribute(minuteAttributeName, Integer.toString(m.getDate().get(Calendar.MINUTE)));
+				meeting.appendChild(date);
+				Element participants = savedData.createElement(participantListElementTag);
+				for(Contact c : m.getContacts())
+				{
+					Element participant = savedData.createElement(contactListElementTag);
+					participant.setNodeValue(Integer.toString(c.getId()));
+					participants.appendChild(participant);
+				}
+				meeting.appendChild(participants);
+				meetingsNode.appendChild(meeting);
+				Element errorNode = savedData.createElement("Errors");
+				errorNode.setNodeValue(Integer.toString(errorNumber));
+				mainNode.appendChild(errorNode);
+			}
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			Transformer transformer = transformerFactory.newTransformer();
+			DOMSource source = new DOMSource(savedData);
+			File outputFile = new File(dir + fileName);
+			if(!outputFile.exists())
+				outputFile.createNewFile();
+			StreamResult result = new StreamResult(outputFile);
+			transformer.transform(source, result);
+		} catch (ParserConfigurationException err) {
+			errorNumber++;
+			outputError("Error Saving Data: " + err.toString());
+		}
+		catch (DOMException err)
+		{
+			errorNumber++;
+			outputError("Error building XML. " + err.toString());
+		}
+		catch (TransformerConfigurationException err) {
+			errorNumber++;
+			outputError("Error outputting XML. " + err.toString());
+		}
+		catch (TransformerException err) {
+			errorNumber++;
+			outputError("Error writing XML. " + err.toString());
+		}
+		catch (IOException err) {
+			errorNumber++;
+			outputError("Error creating output file. " + err.toString());
+		}
 	}
 
 }

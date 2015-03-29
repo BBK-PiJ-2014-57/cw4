@@ -3,24 +3,16 @@ package contactmanager;
 import java.util.Calendar;
 import java.util.Set;
 
-public class FutureMeetingImpl implements FutureMeeting {
+public class FutureMeetingImpl extends MeetingImpl implements FutureMeeting {
 
-	@Override
-	public int getId() {
-		// TODO Auto-generated method stub
-		return 0;
+	public FutureMeetingImpl(Calendar date, Set<Contact> contacts) {
+		super(date, contacts);
+	}
+	
+	public FutureMeetingImpl(Meeting meeting)
+	{
+		super(meeting);
 	}
 
-	@Override
-	public Calendar getDate() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Set<Contact> getContacts() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+	
 }
